@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:lesson2/model/post.dart';
 import 'package:lesson2/pages/create_page.dart';
 import 'package:lesson2/services/api_service.dart';
+import 'package:lesson2/viewmodel/home_view_model.dart';
+import 'package:provider/provider.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -11,58 +13,50 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  List<Post> posts = [];
-  bool isLoading = false;
-
-  _getApi() async {
-    setState(() {
-      isLoading = true;
-    });
-
-    ApiService.getAllPost().then((value) {
-      setState(() {
-        posts = value;
-        isLoading = false;
-      });
-    });
-  }
+  HomePageViewModel homePageViewModel = HomePageViewModel();
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-
-    _getApi();
+    homePageViewModel.getApi();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-              context, MaterialPageRoute(builder: ((context) => CreatePage())));
-        },
-        child: const Icon(Icons.add),
-      ),
-      appBar: AppBar(),
-      body: isLoading
-          ? const CircularProgressIndicator()
-          : ListView.builder(
-              itemBuilder: ((context, index) => Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          posts[index].title!,
-                          style: const TextStyle(fontWeight: FontWeight.bold),
+    return ChangeNotifierProvider(
+      create: ((context) => homePageViewModel),
+      child: Consumer<HomePageViewModel>(builder: (context, provider, child) {
+        return Scaffold(
+          floatingActionButton: FloatingActionButton(
+            onPressed: () {
+              Navigator.push(context,
+                  MaterialPageRoute(builder: ((context) => CreatePage())));
+            },
+            child: const Icon(Icons.add),
+          ),
+          appBar: AppBar(),
+          body: provider.isLoading
+              ? const CircularProgressIndicator()
+              : ListView.builder(
+                  itemCount: provider.posts.length,
+                  itemBuilder: ((context, index) => Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              provider.posts[index].title!,
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                            Text(provider.posts[index].body!),
+                          ],
                         ),
-                        Text(posts[index].body!),
-                      ],
-                    ),
-                  )),
-            ),
+                      )),
+                ),
+        );
+      }),
     );
   }
 }
