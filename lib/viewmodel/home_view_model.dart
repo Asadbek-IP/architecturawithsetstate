@@ -7,6 +7,7 @@ class HomePageViewModel extends ChangeNotifier{
   List<Post> posts = [];
   bool isLoading = false;
 
+
   getApi() {
     isLoading = true;
     notifyListeners();
